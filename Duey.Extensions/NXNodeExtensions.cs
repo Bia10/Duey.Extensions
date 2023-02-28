@@ -37,22 +37,60 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenReferencingNpcNode(this INXNode node)
     {
-        return node.ChildrenTextMatchesPattern(RegexPatterns.AnyNpc);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyNpc);
+    }
+
+    public static string ResolveReferencedNpcNodeId(this INXNode node)
+    {
+        var data = node.ResolveOrDefault<string>();
+        var match = RegexPatterns.AnyNpc.Match(data);
+
+        return match.Value
+            .Replace("#", string.Empty)
+            .Replace("p", string.Empty);
+    }
+
+    public static List<ReferenceNXNode> ReferencesToNpcNodes(this INXNode node)
+    {
+        var result = new List<ReferenceNXNode>();
+
+        foreach (var childNode in node.ChildrenReferencingNpcNode())
+        {
+            var reference = new ReferenceNXNode(
+                node,
+                childNode,
+                childNode.ResolveReferencedNpcNodeId(),
+                childNode.ResolveOrDefault<string>());
+
+            result.Add(reference);
+        }
+
+        return result;
+    }
+
+    public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodesInImage(this INXNode node, string imgName)
+    {
+        var totalReferencesInAllQuests = node.FileImageByName(imgName)
+            .SelectMany(child => child.Children, (_, nodeToCheck) => nodeToCheck.ReferencesToNpcNodes())
+            .Where(referencesToNpc => referencesToNpc.Any())
+            .SelectMany(listOfRefNodes => listOfRefNodes);
+
+        return totalReferencesInAllQuests;
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMapNode(this INXNode node)
     {
-        return node.ChildrenTextMatchesPattern(RegexPatterns.AnyMap);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMap);
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingItemNode(this INXNode node)
     {
-        return node.ChildrenTextMatchesPattern(RegexPatterns.AnyItem);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyItem);
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMobNode(this INXNode node)
     {
-        return node.ChildrenTextMatchesPattern(RegexPatterns.AnyMob);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMob);
     }
 
     public static IEnumerable<INXNode> ParentByType(this INXNode node, NXNodeType type)
@@ -84,11 +122,11 @@ public static class NXNodeExtensions
         return result;
     }
 
-    public static IEnumerable<INXNode> ChildrenTextMatchesPattern(this INXNode node, Regex pattern)
+    public static IEnumerable<INXNode> AnyChildrenTextMatchesPattern(this INXNode node, Regex pattern)
     {
         var matchingChildren = new List<INXNode>();
 
-        foreach (var child in node.ChildrenByType(NXNodeType.String))
+        foreach (var child in node.AllChildrenOfType(NXNodeType.String))
         {
             var resolved = child.TryResolveOrDefault(out string? resolvedStr);
             if (resolved && !string.IsNullOrEmpty(resolvedStr) && pattern.IsMatch(resolvedStr))
