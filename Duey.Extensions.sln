@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33414.496
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Duey.Extensions", "Duey.Extensions\Duey.Extensions.csproj", "{994E825D-2113-4FFF-AD4C-73BF0DE5283E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Duey.Extensions.TestConsole", "Duey.Extensions.TestConsole\Duey.Extensions.TestConsole.csproj", "{AFEE1976-9A0B-4404-9674-D0329CA3CD03}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{994E825D-2113-4FFF-AD4C-73BF0DE5283E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{994E825D-2113-4FFF-AD4C-73BF0DE5283E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{994E825D-2113-4FFF-AD4C-73BF0DE5283E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{994E825D-2113-4FFF-AD4C-73BF0DE5283E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFEE1976-9A0B-4404-9674-D0329CA3CD03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFEE1976-9A0B-4404-9674-D0329CA3CD03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFEE1976-9A0B-4404-9674-D0329CA3CD03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFEE1976-9A0B-4404-9674-D0329CA3CD03}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67982408-4C28-45B6-BEBC-99EA280F96B3}
+	EndGlobalSection
+EndGlobal
