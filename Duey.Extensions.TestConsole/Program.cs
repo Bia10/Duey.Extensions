@@ -12,10 +12,9 @@ internal static class Program
         var npcRefs = file.ReferencesToNpcNodesInImage("Say");
 
         foreach (var npcRef in npcRefs)
-        {
-            Console.WriteLine($"Quest node of id: '{npcRef.ParentNode.Name}' contains one child node of name: '{npcRef.ReferencingNode.Name}' " +
-                              $"\n making reference to npc node id: '{npcRef.ReferencedNodeName}' !" +
-                              $"\n referencing data: {npcRef.ReferencingNodeData}");
-        }
+            Console.WriteLine(
+                $"Quest node of id: '{npcRef.ParentNode.Name}' contains one child node of name: '{npcRef.ReferencingNode.Name}' " +
+                $"\n making reference to npc node id: '{npcRef.ReferencedNodeName}' !" +
+                $"\n referencing data: {npcRef.ReferencingNodeData}");
     }
 }

@@ -50,7 +50,7 @@ public static class NXNodeExtensions
             .Replace("p", string.Empty);
     }
 
-    public static List<ReferenceNXNode> ReferencesToNpcNodes(this INXNode node)
+    public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodes(this INXNode node)
     {
         var result = new List<ReferenceNXNode>();
 
@@ -70,12 +70,13 @@ public static class NXNodeExtensions
 
     public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodesInImage(this INXNode node, string imgName)
     {
-        var totalReferencesInAllQuests = node.FileImageByName(imgName)
-            .SelectMany(child => child.Children, (_, nodeToCheck) => nodeToCheck.ReferencesToNpcNodes())
-            .Where(referencesToNpc => referencesToNpc.Any())
-            .SelectMany(listOfRefNodes => listOfRefNodes);
+        var result = new List<ReferenceNXNode>();
 
-        return totalReferencesInAllQuests;
+        foreach (var imgNode in node.FileImageByName(imgName))
+        foreach (var entryNode in imgNode.Children)
+            result.AddRange(entryNode.ReferencesToNpcNodes());
+
+        return result;
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMapNode(this INXNode node)
@@ -103,23 +104,24 @@ public static class NXNodeExtensions
         return node.Parent.Where(parent => parent.Name.Equals(name, StringComparison.Ordinal));
     }
 
-    public static IEnumerable<INXNode> AllChildrenOfType(this INXNode node, NXNodeType type)
+    public static IEnumerable<INXNode> AllChildrenOfType(this INXNode node, NXNodeType type,
+        List<INXNode>? collection = null)
     {
-        var result = new List<INXNode>();
+        var result = collection ?? new List<INXNode>();
 
         var matching = node.ChildrenByType(type);
-        result.AddRange(matching);
+        result.AddRange(matching.ToArray());
 
         foreach (var child in node.Children)
         {
             var matchingType = child.ChildrenByType(type);
-            result.AddRange(matchingType);
+            result.AddRange(matchingType.ToArray());
 
             if (child.Children.Any())
-                child.AllChildrenOfType(type);
+                child.AllChildrenOfType(type, result);
         }
 
-        return result;
+        return result.DistinctBy(n => n.ResolveOrDefault<string>());
     }
 
     public static IEnumerable<INXNode> AnyChildrenTextMatchesPattern(this INXNode node, Regex pattern)
