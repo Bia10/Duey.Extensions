@@ -37,13 +37,13 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenReferencingNpcNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyNpc);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyNpcName);
     }
 
     public static string ResolveReferencedNpcNodeId(this INXNode node)
     {
         var data = node.ResolveOrDefault<string>();
-        var match = RegexPatterns.AnyNpc.Match(data);
+        var match = RegexPatterns.AnyNpcName.Match(data);
 
         return match.Value
             .Replace("#", string.Empty)
@@ -79,19 +79,64 @@ public static class NXNodeExtensions
         return result;
     }
 
+    public static IEnumerable<INXNode> ChildrenReferencingImageLocationNode(this INXNode node)
+    {
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.ImageLocation2);
+    }
+
+    public static string ResolveReferencedLocationNodeId(this INXNode node)
+    {
+        var data = node.ResolveOrDefault<string>();
+        var match = RegexPatterns.ImageLocation2.Match(data);
+
+        return match.Value
+            .Replace("#", string.Empty)
+            .Replace("f", string.Empty);
+    }
+
+
+    public static IEnumerable<ReferenceNXNode> ReferencesToLocationNodes(this INXNode node)
+    {
+        var result = new List<ReferenceNXNode>();
+
+        foreach (var childNode in node.ChildrenReferencingImageLocationNode())
+        {
+            var reference = new ReferenceNXNode(
+                node,
+                childNode,
+                childNode.ResolveReferencedLocationNodeId(),
+                childNode.ResolveOrDefault<string>());
+
+            result.Add(reference);
+        }
+
+        return result;
+    }
+
+    public static IEnumerable<ReferenceNXNode> ReferencesToLocationNodesInImage(this INXNode node, string imgName)
+    {
+        var result = new List<ReferenceNXNode>();
+
+        foreach (var imgNode in node.FileImageByName(imgName))
+        foreach (var entryNode in imgNode.Children)
+            result.AddRange(entryNode.ReferencesToLocationNodes());
+
+        return result;
+    }
+
     public static IEnumerable<INXNode> ChildrenReferencingMapNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMap);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMapName);
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingItemNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyItem);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyItemName);
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMobNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMob);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMobName);
     }
 
     public static IEnumerable<INXNode> ParentByType(this INXNode node, NXNodeType type)
