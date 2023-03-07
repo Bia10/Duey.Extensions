@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Duey.Extensions.TestConsole;
 
@@ -16,16 +17,32 @@ internal static class Program
 
         Console.WriteLine($"Size of textSpan: {textSpan.Length} chars");
 
-        var stopwatch = Stopwatch.StartNew();
-        var mobNameIds = textSpan.TokenizeWithRegex(RegexPatterns.AnyMobName());
-        var npcNameIds = textSpan.TokenizeWithRegex(RegexPatterns.AnyNpcName());
-        var mapNameIds = textSpan.TokenizeWithRegex(RegexPatterns.AnyMapName());
-        stopwatch.Stop();
+        IEnumerable<Regex> regexCollection = new List<Regex>
+        {
+            RegexPatterns.AnyMobName(),
+            RegexPatterns.AnyNpcName(),
+            RegexPatterns.AnyMapName(),
+            RegexPatterns.AnyItemName(),
+            RegexPatterns.AnyItemName2(),
+            RegexPatterns.AnySkillName()
+        };
 
-        Console.WriteLine($"Elapsed time: {stopwatch.Elapsed}");
-        Console.WriteLine($"Total/Unique mobNameIds: {mobNameIds.Count}/{mobNameIds.Distinct().Count()}," +
-                          $" Total/Unique npcNameIds: {npcNameIds.Count}/{npcNameIds.Distinct().Count()}, " +
-                          $" Total/Unique mapNameIds: {mapNameIds.Count}/{mapNameIds.Distinct().Count()}, ");
+        var stopwatch = Stopwatch.StartNew();
+
+        for (var i = 0; i < 50; i++)
+        {
+            stopwatch.Restart();
+
+            var allReferencedNames = textSpan
+                .TokenizeWithRegexCollection(regexCollection, true)
+                .ToList();
+
+            stopwatch.Stop();
+
+            Console.WriteLine(
+                $"Run N:{i} run elapsed time: {stopwatch.Elapsed} total/unique allReferencedNames: {allReferencedNames.Count}/{allReferencedNames.Distinct().Count()}");
+        }
+
         Console.ReadKey();
     }
 }
