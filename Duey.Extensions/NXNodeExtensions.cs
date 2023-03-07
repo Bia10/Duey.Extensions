@@ -37,13 +37,13 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenReferencingNpcNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyNpcName);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyNpcName());
     }
 
     public static string ResolveReferencedNpcNodeId(this INXNode node)
     {
         var data = node.ResolveOrDefault<string>();
-        var match = RegexPatterns.AnyNpcName.Match(data);
+        var match = RegexPatterns.AnyNpcName().Match(data);
 
         return match.Value
             .Replace("#", string.Empty)
@@ -81,13 +81,13 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenReferencingImageLocationNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.ImageLocation2);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.ImageLocation2());
     }
 
     public static string ResolveReferencedLocationNodeId(this INXNode node)
     {
         var data = node.ResolveOrDefault<string>();
-        var match = RegexPatterns.ImageLocation2.Match(data);
+        var match = RegexPatterns.ImageLocation2().Match(data);
 
         return match.Value
             .Replace("#", string.Empty)
@@ -126,17 +126,17 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenReferencingMapNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMapName);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMapName());
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingItemNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyItemName);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyItemName());
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMobNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMobName);
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyMobName());
     }
 
     public static IEnumerable<INXNode> ParentByType(this INXNode node, NXNodeType type)
