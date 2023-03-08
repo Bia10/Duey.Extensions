@@ -12,7 +12,7 @@ public static class NXNodeExtensions
         if (string.IsNullOrEmpty(name))
             throw new ArgumentException("Image name cannot be null or empty.", nameof(name));
 
-        return node.Children.Where(child => child.Name.Equals(name + ".img", StringComparison.Ordinal));
+        return node.Children.Where(child => child.Name.Equals(name, StringComparison.Ordinal));
     }
 
     public static IEnumerable<INXNode> ChildrenByName(this INXNode node, string name)
@@ -69,6 +69,22 @@ public static class NXNodeExtensions
                 childNode,
                 childNode.ResolveReferencedNpcNodeId(),
                 childNode.ResolveOrDefault<string>()));
+    }
+
+    public static IReadOnlyList<ReferenceNXNode> AllReferencesToNpcNodesInFile(this INXNode node)
+    {
+        if (node is not NXFile nxFileType)
+            throw new ArgumentException("Node is not of type NXFile cannot continue.", nameof(nxFileType));
+
+        var referenceNxNodes = new List<ReferenceNXNode>();
+
+        foreach (var imgChildNode in nxFileType.Children)
+            referenceNxNodes.AddRange(nxFileType.ReferencesToNpcNodesInImage(imgChildNode.Name));
+
+        nxFileType.Dispose();
+        return referenceNxNodes
+            .ToList()
+            .AsReadOnly();
     }
 
     public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodesInImage(this INXNode node, string imgName)

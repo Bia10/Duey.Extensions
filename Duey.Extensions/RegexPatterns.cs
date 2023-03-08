@@ -2,8 +2,56 @@
 
 namespace Duey.Extensions;
 
-public static partial class RegexPatterns
+public partial class RegexPatterns
 {
+    public static readonly IReadOnlyList<Regex> AllRegexes = new List<Regex>
+    {
+        AnyMobName(),
+        AnyNpcName(),
+        AnyMapName(),
+        AnyItemName(),
+        AnyItemName2(),
+        AnyItemPicture(),
+        AnyItemPicture2(),
+        AnySkillPicture(),
+        AnySkillName(),
+        AnyItemCountInPlayersInv(),
+        AnyListOpening(),
+        AnyListClosing(),
+        AnyPlayerName(),
+        AnyProgressBar(),
+        AnyUnknown(),
+        AnyImageLocation(),
+        AnyImageLocation2(),
+        AnyBoldText(),
+        AnyNotBoldText(),
+        AnyBlueColor(),
+        AnyPurpleColor(),
+        AnyGreenColor(),
+        AnyBlackColor(),
+        AnyRedColor()
+    };
+
+    public readonly IReadOnlyList<Regex> AllFormattingRegexes = new List<Regex>
+    {
+        AnyListOpening(),
+        AnyListClosing(),
+        AnyProgressBar(),
+        AnyBoldText(),
+        AnyNotBoldText(),
+        AnyBlueColor(),
+        AnyPurpleColor(),
+        AnyGreenColor(),
+        AnyBlackColor(),
+        AnyRedColor()
+    };
+
+    /// <summary>
+    ///     #p[npcid]# - Shows the name of the NPC.
+    /// </summary>
+    [GeneratedRegex("#.[0-9]+", RegexOptions.IgnoreCase, 1000)]
+    public static partial Regex AnyHyperlinkPrefix();
+
     /// <summary>
     ///     #p[npcid]# - Shows the name of the NPC.
     /// </summary>

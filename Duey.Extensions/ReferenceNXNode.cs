@@ -3,13 +3,13 @@
 public class ReferenceNXNode : IReferenceNXNode
 {
     public readonly INXNode ParentNode;
-    public readonly INXNode ReferencingNode;
     public readonly string ReferencedNodeName;
+    public readonly INXNode ReferencingNode;
     public readonly string ReferencingNodeData;
 
     public ReferenceNXNode(
-        INXNode parentNode, 
-        INXNode referencingNode, 
+        INXNode parentNode,
+        INXNode referencingNode,
         string referencedNodeName,
         string referencingNodeData)
     {
