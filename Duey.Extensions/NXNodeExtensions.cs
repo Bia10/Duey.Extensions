@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using Duey.Layout;
 
 namespace Duey.Extensions;
@@ -46,8 +47,8 @@ public static class NXNodeExtensions
         var match = RegexPatterns.AnyNpcName().Match(data);
 
         return match.Value
-            .Replace("#", string.Empty)
-            .Replace("p", string.Empty);
+            .Replace("#", string.Empty, StringComparison.Ordinal)
+            .Replace("p", string.Empty, StringComparison.Ordinal);
     }
 
     public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodes(this INXNode node)
@@ -81,17 +82,17 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenReferencingImageLocationNode(this INXNode node)
     {
-        return node.AnyChildrenTextMatchesPattern(RegexPatterns.ImageLocation2());
+        return node.AnyChildrenTextMatchesPattern(RegexPatterns.AnyImageLocation2());
     }
 
     public static string ResolveReferencedLocationNodeId(this INXNode node)
     {
         var data = node.ResolveOrDefault<string>();
-        var match = RegexPatterns.ImageLocation2().Match(data);
+        var match = RegexPatterns.AnyImageLocation2().Match(data);
 
         return match.Value
-            .Replace("#", string.Empty)
-            .Replace("f", string.Empty);
+            .Replace("#", string.Empty, StringComparison.Ordinal)
+            .Replace("f", string.Empty, StringComparison.Ordinal);
     }
 
 
@@ -150,9 +151,12 @@ public static class NXNodeExtensions
     }
 
     public static IEnumerable<INXNode> AllChildrenOfType(this INXNode node, NXNodeType type,
-        List<INXNode>? collection = null)
+        IEnumerable<INXNode>? collection = null)
     {
-        var result = collection ?? new List<INXNode>();
+        var result = new List<INXNode>();
+
+        if (collection is not null)
+            result.AddRange(collection.ToList());
 
         var matching = node.ChildrenByType(type);
         result.AddRange(matching.ToArray());
@@ -199,7 +203,7 @@ public static class NXNodeExtensions
                 resType != typeof(float) && resType != typeof(double))
                 return false;
 
-            result = (T)Convert.ChangeType(res, typeof(T));
+            result = (T)Convert.ChangeType(res, typeof(T), CultureInfo.InvariantCulture);
             return true;
         }
 

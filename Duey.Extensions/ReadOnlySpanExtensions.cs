@@ -69,11 +69,11 @@ public static class ReadOnlySpanExtensions
         if (regexCollection is null)
             throw new ArgumentNullException(nameof(regexCollection));
 
-        var regexCollectionToken = new List<string>();
+        var regexCollectionTokens = new List<string>();
 
         foreach (var regex in regexCollection)
-            regexCollectionToken.AddRange(textSpan.TokenizeWithRegex(regex, removeQuotes));
+            regexCollectionTokens.AddRange(textSpan.TokenizeWithRegex(regex, removeQuotes));
 
-        return regexCollectionToken;
+        return regexCollectionTokens;
     }
 }
