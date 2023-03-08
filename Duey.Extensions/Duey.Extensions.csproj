@@ -8,6 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="DotNext" Version="4.11.0" />
 		<PackageReference Include="Duey" Version="1.0.3" />
 		<PackageReference Include="Meziantou.Analyzer" Version="2.0.19">
 			<PrivateAssets>all</PrivateAssets>

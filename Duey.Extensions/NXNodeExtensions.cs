@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text.RegularExpressions;
+using DotNext.Collections.Generic;
 using Duey.Layout;
 
 namespace Duey.Extensions;
@@ -8,11 +9,17 @@ public static class NXNodeExtensions
 {
     public static IEnumerable<INXNode> FileImageByName(this INXNode node, string name)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("Image name cannot be null or empty.", nameof(name));
+
         return node.Children.Where(child => child.Name.Equals(name + ".img", StringComparison.Ordinal));
     }
 
     public static IEnumerable<INXNode> ChildrenByName(this INXNode node, string name)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("Child name cannot be null or empty.", nameof(name));
+
         return node.Children.Where(child => child.Name.Equals(name, StringComparison.Ordinal));
     }
 
@@ -28,6 +35,9 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenParentsByName(this INXNode node, string name)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("Parent name cannot be null or empty.", nameof(name));
+
         return node.Children.Where(child => child.Parent.Name.Equals(name, StringComparison.Ordinal));
     }
 
@@ -53,31 +63,22 @@ public static class NXNodeExtensions
 
     public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodes(this INXNode node)
     {
-        var result = new List<ReferenceNXNode>();
-
-        foreach (var childNode in node.ChildrenReferencingNpcNode())
-        {
-            var reference = new ReferenceNXNode(
+        return node.ChildrenReferencingNpcNode()
+            .Select(childNode => new ReferenceNXNode(
                 node,
                 childNode,
                 childNode.ResolveReferencedNpcNodeId(),
-                childNode.ResolveOrDefault<string>());
-
-            result.Add(reference);
-        }
-
-        return result;
+                childNode.ResolveOrDefault<string>()));
     }
 
     public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodesInImage(this INXNode node, string imgName)
     {
-        var result = new List<ReferenceNXNode>();
+        if (string.IsNullOrEmpty(imgName))
+            throw new ArgumentException("Image name cannot be null or empty.", nameof(imgName));
 
-        foreach (var imgNode in node.FileImageByName(imgName))
-        foreach (var entryNode in imgNode.Children)
-            result.AddRange(entryNode.ReferencesToNpcNodes());
-
-        return result;
+        return node.FileImageByName(imgName)
+            .SelectMany(imgNode => imgNode.Children)
+            .SelectMany(entryNode => entryNode.ReferencesToNpcNodes());
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingImageLocationNode(this INXNode node)
@@ -95,34 +96,24 @@ public static class NXNodeExtensions
             .Replace("f", string.Empty, StringComparison.Ordinal);
     }
 
-
     public static IEnumerable<ReferenceNXNode> ReferencesToLocationNodes(this INXNode node)
     {
-        var result = new List<ReferenceNXNode>();
-
-        foreach (var childNode in node.ChildrenReferencingImageLocationNode())
-        {
-            var reference = new ReferenceNXNode(
+        return node.ChildrenReferencingImageLocationNode()
+            .Select(childNode => new ReferenceNXNode(
                 node,
                 childNode,
                 childNode.ResolveReferencedLocationNodeId(),
-                childNode.ResolveOrDefault<string>());
-
-            result.Add(reference);
-        }
-
-        return result;
+                childNode.ResolveOrDefault<string>()));
     }
 
     public static IEnumerable<ReferenceNXNode> ReferencesToLocationNodesInImage(this INXNode node, string imgName)
     {
-        var result = new List<ReferenceNXNode>();
+        if (string.IsNullOrEmpty(imgName))
+            throw new ArgumentException("Image name cannot be null or empty.", nameof(imgName));
 
-        foreach (var imgNode in node.FileImageByName(imgName))
-        foreach (var entryNode in imgNode.Children)
-            result.AddRange(entryNode.ReferencesToLocationNodes());
-
-        return result;
+        return node.FileImageByName(imgName)
+            .SelectMany(imgNode => imgNode.Children)
+            .SelectMany(entryNode => entryNode.ReferencesToLocationNodes());
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMapNode(this INXNode node)
@@ -147,24 +138,27 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ParentByName(this INXNode node, string name)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new ArgumentException("Name cannot be null or empty.", nameof(name));
+
         return node.Parent.Where(parent => parent.Name.Equals(name, StringComparison.Ordinal));
     }
 
     public static IEnumerable<INXNode> AllChildrenOfType(this INXNode node, NXNodeType type,
         IEnumerable<INXNode>? collection = null)
     {
-        var result = new List<INXNode>();
+        var result = new HashSet<INXNode>();
 
         if (collection is not null)
-            result.AddRange(collection.ToList());
+            result.AddAll(collection.ToArray());
 
         var matching = node.ChildrenByType(type);
-        result.AddRange(matching.ToArray());
+        result.AddAll(matching.ToArray());
 
         foreach (var child in node.Children)
         {
             var matchingType = child.ChildrenByType(type);
-            result.AddRange(matchingType.ToArray());
+            result.AddAll(matchingType.ToArray());
 
             if (child.Children.Any())
                 child.AllChildrenOfType(type, result);
@@ -175,16 +169,10 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> AnyChildrenTextMatchesPattern(this INXNode node, Regex pattern)
     {
-        var matchingChildren = new List<INXNode>();
-
         foreach (var child in node.AllChildrenOfType(NXNodeType.String))
-        {
-            var resolved = child.TryResolveOrDefault(out string? resolvedStr);
-            if (resolved && !string.IsNullOrEmpty(resolvedStr) && pattern.IsMatch(resolvedStr))
-                matchingChildren.Add(child);
-        }
-
-        return matchingChildren;
+            if (child.TryResolveOrDefault(out string? resolvedStr) && !string.IsNullOrWhiteSpace(resolvedStr) &&
+                pattern.IsMatch(resolvedStr))
+                yield return child;
     }
 
     public static bool TryResolveOrDefault<T>(this INXNode node, out T? result, string? path = null) where T : class

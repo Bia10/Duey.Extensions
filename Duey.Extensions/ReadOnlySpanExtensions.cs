@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using DotNext.Buffers;
 
 namespace Duey.Extensions;
 
@@ -6,26 +7,41 @@ public static class ReadOnlySpanExtensions
 {
     public static Match Match(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
-        return regexGenerator.Match(textSpan.ToString());
+        if (regexGenerator is null) 
+            throw new ArgumentNullException(nameof(regexGenerator));
+
+        return regexGenerator.Match(new string(textSpan));
     }
 
     public static MatchCollection MatchCollection(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
-        return regexGenerator.Matches(textSpan.ToString());
+        if (regexGenerator is null) 
+            throw new ArgumentNullException(nameof(regexGenerator));
+
+        return regexGenerator.Matches(new string(textSpan));
     }
 
     public static Regex.ValueMatchEnumerator MatchEnumerator(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
+        if (regexGenerator is null) 
+            throw new ArgumentNullException(nameof(regexGenerator));
+
         return regexGenerator.EnumerateMatches(textSpan);
     }
 
     public static int MatchCount(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
+        if (regexGenerator is null) 
+            throw new ArgumentNullException(nameof(regexGenerator));
+
         return regexGenerator.Count(textSpan);
     }
 
     public static bool HasMatch(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
+        if (regexGenerator is null) 
+            throw new ArgumentNullException(nameof(regexGenerator));
+
         return regexGenerator.IsMatch(textSpan);
     }
 
@@ -34,7 +50,7 @@ public static class ReadOnlySpanExtensions
         return textSpan.IsEmpty || textSpan.IsWhiteSpace();
     }
 
-    public static IEnumerable<string> TokenizeWithRegex(this ReadOnlySpan<char> textSpan, Regex regexGenerator,
+    public static string TokenizeWithRegex(this ReadOnlySpan<char> textSpan, Regex regexGenerator,
         bool removeQuotes = true)
     {
         if (textSpan.IsEmptyOrWhiteSpace())
@@ -42,26 +58,39 @@ public static class ReadOnlySpanExtensions
         if (regexGenerator is null)
             throw new ArgumentNullException(nameof(regexGenerator));
 
-        var regexTokens = new List<string>();
+        using var bufferSlim = new BufferWriterSlim<char>(stackalloc char[50000]);
 
-        foreach (var valueMatch in textSpan.MatchEnumerator(regexGenerator))
+        try
         {
-            if (valueMatch.Length.Equals(0))
-                continue;
+            foreach (var valueMatch in textSpan.MatchEnumerator(regexGenerator))
+            {
+                if (valueMatch.Length.Equals(0))
+                    continue;
 
-            var firstChar = textSpan[valueMatch.Index];
-            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+                var firstChar = textSpan[valueMatch.Index];
+                var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
 
-            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                regexTokens.Add(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2).ToString());
-            else
-                regexTokens.Add(textSpan.Slice(valueMatch.Index, valueMatch.Length).ToString());
+                if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                    bufferSlim.Write(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
+                else
+                    bufferSlim.Write(textSpan.Slice(valueMatch.Index, valueMatch.Length));
+            }
+
+            return bufferSlim.ToString();
+        }
+        catch (Exception ex)
+        {
+            // ignored
+        }
+        finally
+        {
+            bufferSlim.Dispose();
         }
 
-        return regexTokens;
+        return string.Empty;
     }
 
-    public static IEnumerable<string> TokenizeWithRegexCollection(this ReadOnlySpan<char> textSpan,
+    public static string TokenizeWithRegexCollection(this ReadOnlySpan<char> textSpan,
         IEnumerable<Regex> regexCollection, bool removeQuotes)
     {
         if (textSpan.IsEmptyOrWhiteSpace())
@@ -69,11 +98,24 @@ public static class ReadOnlySpanExtensions
         if (regexCollection is null)
             throw new ArgumentNullException(nameof(regexCollection));
 
-        var regexCollectionTokens = new List<string>();
+        using var bufferSlim = new BufferWriterSlim<char>(stackalloc char[50000]);
 
-        foreach (var regex in regexCollection)
-            regexCollectionTokens.AddRange(textSpan.TokenizeWithRegex(regex, removeQuotes));
+        try
+        {
+            foreach (var regex in regexCollection)
+                bufferSlim.Write(textSpan.TokenizeWithRegex(regex, removeQuotes));
 
-        return regexCollectionTokens;
+            return bufferSlim.ToString();
+        }
+        catch (Exception ex)
+        {
+            // ignored
+        }
+        finally
+        {
+            bufferSlim.Dispose();
+        }
+
+        return string.Empty;
     }
 }
