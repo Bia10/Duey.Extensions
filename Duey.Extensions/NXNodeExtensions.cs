@@ -30,7 +30,7 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenParents(this INXNode node)
     {
-        return node.Children.Select(child => child.Parent);
+        return node.Children.Select(static child => child.Parent);
     }
 
     public static IEnumerable<INXNode> ChildrenParentsByName(this INXNode node, string name)
@@ -68,20 +68,49 @@ public static class NXNodeExtensions
                 node,
                 childNode,
                 childNode.ResolveReferencedNpcNodeId(),
-                childNode.ResolveOrDefault<string>()));
+                childNode.ResolveOrDefault<string>(),
+                ReferenceNXNode.ReferenceNodeType.Npc));
+    }
+
+    public static IEnumerable<INXNode> GetAllReferencesToNodeTypeInFile(this INXNode rootNode, NXNodeType targetType)
+    {
+        var visitedNodes = new HashSet<INXNode>();
+        var nodesToVisit = new Queue<INXNode>();
+        nodesToVisit.Enqueue(rootNode);
+
+        while (nodesToVisit.Count > 0)
+        {
+            var currentNode = nodesToVisit.Dequeue();
+
+            if (visitedNodes.Contains(currentNode))
+                continue;
+
+            visitedNodes.Add(currentNode);
+
+            if (currentNode.Type == targetType)
+            {
+                var parentNode = currentNode.Parent;
+                if (parentNode != null)
+                    visitedNodes.Add(parentNode);
+            }
+
+            foreach (var childNode in currentNode.Children)
+                nodesToVisit.Enqueue(childNode);
+        }
+
+        return visitedNodes;
     }
 
     public static IReadOnlyList<ReferenceNXNode> AllReferencesToNpcNodesInFile(this INXNode node)
     {
         if (node is not NXFile nxFileType)
-            throw new ArgumentException("Node is not of type NXFile cannot continue.", nameof(nxFileType));
+            throw new ArgumentException("Node is not of type NXFile cannot continue.", nameof(node));
 
         var referenceNxNodes = new List<ReferenceNXNode>();
 
         foreach (var imgChildNode in nxFileType.Children)
             referenceNxNodes.AddRange(nxFileType.ReferencesToNpcNodesInImage(imgChildNode.Name));
 
-        nxFileType.Dispose();
         return referenceNxNodes
             .ToList()
             .AsReadOnly();
@@ -93,8 +122,8 @@ public static class NXNodeExtensions
             throw new ArgumentException("Image name cannot be null or empty.", nameof(imgName));
 
         return node.FileImageByName(imgName)
-            .SelectMany(imgNode => imgNode.Children)
-            .SelectMany(entryNode => entryNode.ReferencesToNpcNodes());
+            .SelectMany(static imgNode => imgNode.Children)
+            .SelectMany(static entryNode => entryNode.ReferencesToNpcNodes());
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingImageLocationNode(this INXNode node)
@@ -119,7 +148,8 @@ public static class NXNodeExtensions
                 node,
                 childNode,
                 childNode.ResolveReferencedLocationNodeId(),
-                childNode.ResolveOrDefault<string>()));
+                childNode.ResolveOrDefault<string>(),
+                ReferenceNXNode.ReferenceNodeType.Map));
     }
 
     public static IEnumerable<ReferenceNXNode> ReferencesToLocationNodesInImage(this INXNode node, string imgName)
@@ -128,8 +158,8 @@ public static class NXNodeExtensions
             throw new ArgumentException("Image name cannot be null or empty.", nameof(imgName));
 
         return node.FileImageByName(imgName)
-            .SelectMany(imgNode => imgNode.Children)
-            .SelectMany(entryNode => entryNode.ReferencesToLocationNodes());
+            .SelectMany(static imgNode => imgNode.Children)
+            .SelectMany(static entryNode => entryNode.ReferencesToLocationNodes());
     }
 
     public static IEnumerable<INXNode> ChildrenReferencingMapNode(this INXNode node)
@@ -180,7 +210,7 @@ public static class NXNodeExtensions
                 child.AllChildrenOfType(type, result);
         }
 
-        return result.DistinctBy(n => n.ResolveOrDefault<string>());
+        return result.DistinctBy(static nxNode => nxNode.ResolveOrDefault<string>());
     }
 
     public static IEnumerable<INXNode> AnyChildrenTextMatchesPattern(this INXNode node, Regex pattern)
