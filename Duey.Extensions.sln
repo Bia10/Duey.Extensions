@@ -7,11 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Duey.Extensions", "Duey.Ext
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Duey.Extensions.TestConsole", "Duey.Extensions.TestConsole\Duey.Extensions.TestConsole.csproj", "{AFEE1976-9A0B-4404-9674-D0329CA3CD03}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{47CCD341-81B3-40BC-95E8-C604D6C6DD18}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

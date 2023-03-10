@@ -5,9 +5,12 @@
 		<LangVersion>preview</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.5" />
+		<PackageReference Include="BenchmarkDotNet.Annotations" Version="0.13.5" />
 		<PackageReference Include="DotNext" Version="4.11.0" />
 		<PackageReference Include="Duey" Version="1.0.3" />
 		<PackageReference Include="Meziantou.Analyzer" Version="2.0.19">

@@ -1,6 +1,6 @@
-﻿using System.Diagnostics;
+﻿//using Duey.Layout;
+using System.Diagnostics;
 using System.Text;
-using Duey.Layout;
 using static Duey.Extensions.RegexPatterns;
 
 namespace Duey.Extensions.TestConsole;
@@ -13,9 +13,9 @@ internal static class Program
 
     private static void Main()
     {
-        using var nxFile = new NXFile(FilePath);
+        using NXFile nxFile = new(FilePath);
         var npcRefs = nxFile.AllReferencesToNpcNodesInFile();
-        var npcTypeNodes = nxFile.GetAllReferencesToNodeTypeInFile(NXNodeType.String);
+        //var npcTypeNodes = nxFile.GetAllReferencesToNodeTypeInFile(NXNodeType.String);
         var stopwatch = Stopwatch.StartNew();
 
         try
@@ -24,9 +24,8 @@ internal static class Program
             {
                 stopwatch.Restart();
 
-                var stringBuilder = new StringBuilder();
-                foreach (var npcRef in npcRefs)
-                    stringBuilder.Append(npcRef.ReferencingNodeData);
+                StringBuilder stringBuilder = new();
+                foreach (var npcRef in npcRefs) stringBuilder.Append(npcRef.ReferencingNodeData);
 
                 var textString = stringBuilder.ToString();
                 var textSpan = textString.AsSpan();
@@ -35,7 +34,7 @@ internal static class Program
                     Console.WriteLine("ERROR: textSpan has different size from original textString!");
 
                 //var allReferencedNames2 = textSpan.TokenizeWithRegex(AnyHyperlinkPrefix()).ToString();
-                var allReferencedNames = textSpan.TokenizeWithRegexCollection(AllRegexes, false);
+                var allReferencedNames = textSpan.TokenizeWithRegexCollection2(AllRegexes, false);
 
                 stopwatch.Stop();
                 Console.WriteLine(
@@ -46,7 +45,6 @@ internal static class Program
         {
             nxFile.Dispose();
         }
-
         // Console.ReadKey();
     }
 }

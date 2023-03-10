@@ -2,37 +2,38 @@
 
 namespace Duey.Extensions;
 
-public partial class RegexPatterns
+public static partial class RegexPatterns
 {
     public static readonly IReadOnlyList<Regex> AllRegexes = new List<Regex>
     {
-        AnyMobName(),
-        AnyNpcName(),
-        AnyMapName(),
-        AnyItemName(),
-        AnyItemName2(),
-        AnyItemPicture(),
-        AnyItemPicture2(),
-        AnySkillPicture(),
-        AnySkillName(),
-        AnyItemCountInPlayersInv(),
-        AnyListOpening(),
-        AnyListClosing(),
-        AnyPlayerName(),
-        AnyProgressBar(),
-        AnyUnknown(),
-        AnyImageLocation(),
-        AnyImageLocation2(),
-        AnyBoldText(),
-        AnyNotBoldText(),
-        AnyBlueColor(),
-        AnyPurpleColor(),
-        AnyGreenColor(),
-        AnyBlackColor(),
-        AnyRedColor()
+        AnyHyperlinkPrefix()
+        //AnyMobName(),
+        //AnyNpcName(),
+        //AnyMapName(),
+        //AnyItemName(),
+        //AnyItemName2(),
+        //AnyItemPicture(),
+        //AnyItemPicture2(),
+        //AnySkillPicture(),
+        //AnySkillName(),
+        //AnyItemCountInPlayersInv(),
+        //AnyListOpening(),
+        //AnyListClosing(),
+        //AnyPlayerName(),
+        //AnyProgressBar(),
+        //AnyUnknown(),
+        //AnyImageLocation(),
+        //AnyImageLocation2(),
+        //AnyBoldText(),
+        //AnyNotBoldText(),
+        //AnyBlueColor(),
+        //AnyPurpleColor(),
+        //AnyGreenColor(),
+        //AnyBlackColor(),
+        //AnyRedColor()
     };
 
-    public readonly IReadOnlyList<Regex> AllFormattingRegexes = new List<Regex>
+    public static readonly IReadOnlyList<Regex> AllFormattingRegexes = new List<Regex>
     {
         AnyListOpening(),
         AnyListClosing(),

@@ -4,7 +4,6 @@ public sealed class ReferenceNXNode : IReferenceNXNode
 {
     public enum ReferenceNodeType : short
     {
-        Unknown = 0,
         Map,
         Mob,
         Npc,
@@ -66,12 +65,10 @@ public sealed class ReferenceNXNode : IReferenceNXNode
             ReferenceNodeType.TamingMob => Path.Combine(dataPath, "TamingMob.nx"),
             ReferenceNodeType.Morph => Path.Combine(dataPath, "Morph.nx"),
             ReferenceNodeType.Effect => Path.Combine(dataPath, "Effect.nx"),
-            ReferenceNodeType.Unknown => throw new NotImplementedException(
-                $"Unsupported ReferenceNXNodeType: {ReferenceType}"),
-            _ => throw new NotImplementedException($"Unsupported ReferenceNXNodeType: {ReferenceType}")
+            _ => throw new ArgumentOutOfRangeException($"Unsupported ReferenceNXNodeType: {ReferenceType}")
         };
 
-        using var nxFile = new NXFile(filePath);
+        using NXFile nxFile = new(filePath);
         return nxFile.Root.ResolvePath(name);
     }
 }

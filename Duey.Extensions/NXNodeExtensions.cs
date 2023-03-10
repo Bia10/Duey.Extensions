@@ -9,16 +9,14 @@ public static class NXNodeExtensions
 {
     public static IEnumerable<INXNode> FileImageByName(this INXNode node, string name)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("Image name cannot be null or empty.", nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return node.Children.Where(child => child.Name.Equals(name, StringComparison.Ordinal));
     }
 
     public static IEnumerable<INXNode> ChildrenByName(this INXNode node, string name)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("Child name cannot be null or empty.", nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return node.Children.Where(child => child.Name.Equals(name, StringComparison.Ordinal));
     }
@@ -35,8 +33,7 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ChildrenParentsByName(this INXNode node, string name)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("Parent name cannot be null or empty.", nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return node.Children.Where(child => child.Parent.Name.Equals(name, StringComparison.Ordinal));
     }
@@ -72,10 +69,11 @@ public static class NXNodeExtensions
                 ReferenceNXNode.ReferenceNodeType.Npc));
     }
 
-    public static IEnumerable<INXNode> GetAllReferencesToNodeTypeInFile(this INXNode rootNode, NXNodeType targetType)
+    public static IEnumerable<INXNode> GetAllReferencesToNodeTypeInFile(this INXNode rootNode,
+        NXNodeType targetType)
     {
-        var visitedNodes = new HashSet<INXNode>();
-        var nodesToVisit = new Queue<INXNode>();
+        HashSet<INXNode> visitedNodes = new();
+        Queue<INXNode> nodesToVisit = new();
         nodesToVisit.Enqueue(rootNode);
 
         while (nodesToVisit.Count > 0)
@@ -106,7 +104,7 @@ public static class NXNodeExtensions
         if (node is not NXFile nxFileType)
             throw new ArgumentException("Node is not of type NXFile cannot continue.", nameof(node));
 
-        var referenceNxNodes = new List<ReferenceNXNode>();
+        List<ReferenceNXNode> referenceNxNodes = new();
 
         foreach (var imgChildNode in nxFileType.Children)
             referenceNxNodes.AddRange(nxFileType.ReferencesToNpcNodesInImage(imgChildNode.Name));
@@ -118,8 +116,7 @@ public static class NXNodeExtensions
 
     public static IEnumerable<ReferenceNXNode> ReferencesToNpcNodesInImage(this INXNode node, string imgName)
     {
-        if (string.IsNullOrEmpty(imgName))
-            throw new ArgumentException("Image name cannot be null or empty.", nameof(imgName));
+        ArgumentException.ThrowIfNullOrEmpty(imgName);
 
         return node.FileImageByName(imgName)
             .SelectMany(static imgNode => imgNode.Children)
@@ -154,8 +151,7 @@ public static class NXNodeExtensions
 
     public static IEnumerable<ReferenceNXNode> ReferencesToLocationNodesInImage(this INXNode node, string imgName)
     {
-        if (string.IsNullOrEmpty(imgName))
-            throw new ArgumentException("Image name cannot be null or empty.", nameof(imgName));
+        ArgumentException.ThrowIfNullOrEmpty(imgName);
 
         return node.FileImageByName(imgName)
             .SelectMany(static imgNode => imgNode.Children)
@@ -184,8 +180,7 @@ public static class NXNodeExtensions
 
     public static IEnumerable<INXNode> ParentByName(this INXNode node, string name)
     {
-        if (string.IsNullOrEmpty(name))
-            throw new ArgumentException("Name cannot be null or empty.", nameof(name));
+        ArgumentException.ThrowIfNullOrEmpty(name);
 
         return node.Parent.Where(parent => parent.Name.Equals(name, StringComparison.Ordinal));
     }
@@ -193,7 +188,7 @@ public static class NXNodeExtensions
     public static IEnumerable<INXNode> AllChildrenOfType(this INXNode node, NXNodeType type,
         IEnumerable<INXNode>? collection = null)
     {
-        var result = new HashSet<INXNode>();
+        HashSet<INXNode> result = new();
 
         if (collection is not null)
             result.AddAll(collection.ToArray());

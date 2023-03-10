@@ -1,35 +1,62 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using DotNext.Buffers;
+using DotNext.Text;
+using Duey.Extensions.Exceptions;
+using Duey.Extensions.Shared;
 
 namespace Duey.Extensions;
 
 public static class ReadOnlySpanExtensions
 {
+    public static string ToCreateString(this ReadOnlySpan<char> textSpan)
+    {
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
+
+        return string.Create(textSpan.Length, textSpan.ToArray(),
+            static (textSpan, resultStr) => textSpan.CopyTo(resultStr));
+    }
+
+    public static string ToBuilderString(this ReadOnlySpan<char> textSpan)
+    {
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
+
+        StringBuilder sb = new(textSpan.Length);
+        foreach (var @char in textSpan) sb.Append(@char);
+
+        return sb.ToString();
+    }
+
+    public static string ToUtf8String(this ReadOnlySpan<char> textSpan)
+    {
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
+
+        var buffer = Encoding.UTF8.GetBytes(textSpan);
+        return Encoding.UTF8.GetString(buffer.Span);
+    }
+
     public static Match MatchRegex(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
-        return regexGenerator.Match(new string(textSpan));
+        return regexGenerator.Match(textSpan.ToCreateString());
     }
 
     public static MatchCollection MatchRegexCollection(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
-        return regexGenerator.Matches(new string(textSpan));
+        return regexGenerator.Matches(textSpan.ToCreateString());
     }
 
     public static Regex.ValueMatchEnumerator EnumerateRegexMatches(this ReadOnlySpan<char> textSpan,
         Regex regexGenerator)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
@@ -38,8 +65,7 @@ public static class ReadOnlySpanExtensions
 
     public static int CountRegexMatches(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
@@ -48,8 +74,7 @@ public static class ReadOnlySpanExtensions
 
     public static bool HasRegexMatch(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
@@ -62,15 +87,15 @@ public static class ReadOnlySpanExtensions
         return trimmed.IsEmpty || trimmed.IsWhiteSpace();
     }
 
-    public static ReadOnlySpan<char> TokenizeWithRegex(this ReadOnlySpan<char> textSpan, Regex regexGenerator,
+    public static ReadOnlySpan<char> TokenizeWithRegex(
+        this ReadOnlySpan<char> textSpan,
+        Regex regexGenerator,
         bool removeQuotes = true)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
-
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
-        using var bufferSlim = new BufferWriterSlim<char>(stackalloc char[64]);
+        using BufferWriterSlim<char> bufferSlim = new(stackalloc char[8192]);
 
         try
         {
@@ -95,15 +120,16 @@ public static class ReadOnlySpanExtensions
         }
     }
 
-    public static string TokenizeWithRegexCollection(this ReadOnlySpan<char> textSpan,
-        IEnumerable<Regex> regexCollection, bool removeQuotes)
+    public static string TokenizeWithRegexCollection(
+        this ReadOnlySpan<char> textSpan,
+        IEnumerable<Regex> regexCollection,
+        bool removeQuotes)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexCollection);
 
-        using var bufferSlim = new BufferWriterSlim<char>(stackalloc char[64]);
+        using BufferWriterSlim<char> bufferSlim = new(stackalloc char[8192]);
 
         try
         {
@@ -118,12 +144,12 @@ public static class ReadOnlySpanExtensions
         }
     }
 
-    public static string TokenizeWithRegexCollection2(this ReadOnlySpan<char> textSpan,
+    public static string TokenizeWithRegexCollection2(
+        this ReadOnlySpan<char> textSpan,
         IEnumerable<Regex> regexCollection,
         bool removeQuotes, int stackAllocThreshold = 8192)
     {
-        if (textSpan.IsEmptyOrWhiteSpace())
-            throw new ArgumentNullException(nameof(textSpan));
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         ArgumentNullException.ThrowIfNull(regexCollection);
 
@@ -144,7 +170,7 @@ public static class ReadOnlySpanExtensions
         }
 
         var buffer = bufferSize <= stackAllocThreshold ? stackalloc char[bufferSize] : new char[bufferSize];
-        var bufferWriter = new SpanWriter<char>(buffer);
+        SpanWriter<char> bufferWriter = new(buffer);
 
         foreach (var regex in collection)
         foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
@@ -161,5 +187,56 @@ public static class ReadOnlySpanExtensions
         }
 
         return bufferWriter.ToString();
+    }
+
+    public static string TokenizeWithRegexCollection3(
+        this ReadOnlySpan<char> textSpan,
+        IEnumerable<Regex> regexCollection,
+        bool removeQuotes)
+    {
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
+        ArgumentNullException.ThrowIfNull(regexCollection);
+
+        var bufferSize = 0;
+        var collection = regexCollection as Regex[] ?? regexCollection.ToArray();
+
+        foreach (var regex in collection)
+        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+        {
+            if (valueMatch.Length.Equals(0)) continue;
+
+            var firstChar = textSpan[valueMatch.Index];
+            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+
+            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                bufferSize += valueMatch.Length - 2;
+            else
+                bufferSize += valueMatch.Length;
+        }
+
+        var sb = StringBuilderSimplePool.Shared.Rent(bufferSize);
+
+        try
+        {
+            foreach (var regex in collection)
+            foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+            {
+                if (valueMatch.Length.Equals(0)) continue;
+
+                var firstChar = textSpan[valueMatch.Index];
+                var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+
+                if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                    sb.Append(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
+                else
+                    sb.Append(textSpan.Slice(valueMatch.Index, valueMatch.Length));
+            }
+
+            return sb.ToString();
+        }
+        finally
+        {
+            StringBuilderSimplePool.Shared.Return(sb);
+        }
     }
 }
