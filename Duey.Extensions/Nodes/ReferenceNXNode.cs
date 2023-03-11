@@ -1,4 +1,4 @@
-﻿namespace Duey.Extensions;
+﻿namespace Duey.Extensions.Nodes;
 
 public sealed class ReferenceNXNode : IReferenceNXNode
 {
@@ -29,12 +29,8 @@ public sealed class ReferenceNXNode : IReferenceNXNode
     public readonly INXNode ReferencingNode;
     public readonly string ReferencingNodeData;
 
-    internal ReferenceNXNode(
-        INXNode parentNode,
-        INXNode referencingNode,
-        string referencedNodeName,
-        string referencingNodeData,
-        ReferenceNodeType referenceType)
+    internal ReferenceNXNode(INXNode parentNode, INXNode referencingNode, string referencedNodeName,
+        string referencingNodeData, ReferenceNodeType referenceType)
     {
         ParentNode = parentNode;
         ReferencingNode = referencingNode;

@@ -1,50 +1,83 @@
-﻿//using Duey.Layout;
-using System.Diagnostics;
-using System.Text;
-using static Duey.Extensions.RegexPatterns;
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Running;
+using Duey.Extensions.Benchmarks;
 
 namespace Duey.Extensions.TestConsole;
 
 internal static class Program
 {
-    private static readonly string FilePath =
-        Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "Data (2)",
-            "Quest.nx");
+    private const string NxFileNamePattern = "*.nx";
+
+    private static readonly string
+        UserProfileDirPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+    private static readonly string DirectoryPath = Path.Join(UserProfileDirPath, "Downloads", "Data (2)");
+
+    private static IEnumerable<string> FileNames
+        => Directory.GetFiles(DirectoryPath, NxFileNamePattern).ToArray();
+
+    private static HashSet<NXFile> NxFileSet
+        => LoadNxFiles(FileNames).ToHashSet();
+
+    private static IEnumerable<NXFile> NxFiles
+    {
+        get => NxFileSet;
+        set
+        {
+            if (!value.Any()) return;
+
+            foreach (var nxFile in value.Select(static nxFile => nxFile))
+                NxFileSet.Add(nxFile);
+        }
+    }
+
+    private static IEnumerable<NXFile> LoadNxFiles(IEnumerable<string> fileNames)
+    {
+        return fileNames.Select(static file => new NXFile(file));
+    }
 
     private static void Main()
     {
-        using NXFile nxFile = new(FilePath);
-        var npcRefs = nxFile.AllReferencesToNpcNodesInFile();
-        //var npcTypeNodes = nxFile.GetAllReferencesToNodeTypeInFile(NXNodeType.String);
-        var stopwatch = Stopwatch.StartNew();
+        var config = DefaultConfig.Instance
+            .AddJob(Job.Default.WithWarmupCount(2).WithIterationCount(5).WithMaxRelativeError(0.005))
+            .AddExporter(new CsvExporter(CsvSeparator.Comma))
+            .AddDiagnoser(MemoryDiagnoser.Default);
 
-        try
-        {
-            for (var i = 0; i < 50; i++)
-            {
-                stopwatch.Restart();
+        BenchmarkRunner.Run<CountNodesBenchmark>(config);
 
-                StringBuilder stringBuilder = new();
-                foreach (var npcRef in npcRefs) stringBuilder.Append(npcRef.ReferencingNodeData);
+        //  using NXFile nxFile = new(FilePath);
+        //var npcRefs = nxFile.AllReferencesToNpcNodesInFile();
+        ////var npcTypeNodes = nxFile.GetAllReferencesToNodeTypeInFile(NXNodeType.String);
+        //var stopwatch = Stopwatch.StartNew();
 
-                var textString = stringBuilder.ToString();
-                var textSpan = textString.AsSpan();
+        //try
+        //{
+        //    for (var i = 0; i < 50; i++)
+        //    {
+        //        stopwatch.Restart();
 
-                if (!textSpan.Length.Equals(textString.Length))
-                    Console.WriteLine("ERROR: textSpan has different size from original textString!");
+        //        StringBuilder stringBuilder = new(npcRefs.Count);
+        //        foreach (var npcRef in npcRefs)
+        //            stringBuilder.Append(npcRef.ReferencingNodeData);
 
-                //var allReferencedNames2 = textSpan.TokenizeWithRegex(AnyHyperlinkPrefix()).ToString();
-                var allReferencedNames = textSpan.TokenizeWithRegexCollection2(AllRegexes, false);
+        //        var textString = stringBuilder.ToString();
+        //        var textSpan = textString.AsSpan();
 
-                stopwatch.Stop();
-                Console.WriteLine(
-                    $"Run N:{i} run elapsed time: {stopwatch.Elapsed} total/unique allReferencedNames: {allReferencedNames.Length}/{allReferencedNames.Distinct().Count()}");
-            }
-        }
-        finally
-        {
-            nxFile.Dispose();
-        }
+        //        //var allReferencedNames = textSpan.TokenizeWithRegex(AnyHyperlinkPrefix()).ToString();
+        //        var allReferencedNames2 = textSpan.TokenizeWithRegexCollection2(AllRegexes, false);
+
+        //        stopwatch.Stop();
+        //        Console.WriteLine(
+        //            $"Run N:{i} run elapsed time: {stopwatch.Elapsed} total/unique allReferencedNames: {allReferencedNames2.Length}/{allReferencedNames2.Distinct().Count()}");
+        //    }
+        //}
+        //finally
+        //{
+        //    nxFile.Dispose();
+        //}
         // Console.ReadKey();
     }
 }

@@ -5,7 +5,7 @@ using DotNext.Text;
 using Duey.Extensions.Exceptions;
 using Duey.Extensions.Shared;
 
-namespace Duey.Extensions;
+namespace Duey.Extensions.Extensions;
 
 public static class ReadOnlySpanExtensions
 {
@@ -38,7 +38,6 @@ public static class ReadOnlySpanExtensions
     public static Match MatchRegex(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
         return regexGenerator.Match(textSpan.ToCreateString());
@@ -47,7 +46,6 @@ public static class ReadOnlySpanExtensions
     public static MatchCollection MatchRegexCollection(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
         return regexGenerator.Matches(textSpan.ToCreateString());
@@ -57,7 +55,6 @@ public static class ReadOnlySpanExtensions
         Regex regexGenerator)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
         return regexGenerator.EnumerateMatches(textSpan);
@@ -66,7 +63,6 @@ public static class ReadOnlySpanExtensions
     public static int CountRegexMatches(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
         return regexGenerator.Count(textSpan);
@@ -75,7 +71,6 @@ public static class ReadOnlySpanExtensions
     public static bool HasRegexMatch(this ReadOnlySpan<char> textSpan, Regex regexGenerator)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
         ArgumentNullException.ThrowIfNull(regexGenerator);
 
         return regexGenerator.IsMatch(textSpan);
@@ -87,9 +82,7 @@ public static class ReadOnlySpanExtensions
         return trimmed.IsEmpty || trimmed.IsWhiteSpace();
     }
 
-    public static ReadOnlySpan<char> TokenizeWithRegex(
-        this ReadOnlySpan<char> textSpan,
-        Regex regexGenerator,
+    public static ReadOnlySpan<char> TokenizeWithRegex(this ReadOnlySpan<char> textSpan, Regex regexGenerator,
         bool removeQuotes = true)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
@@ -120,13 +113,10 @@ public static class ReadOnlySpanExtensions
         }
     }
 
-    public static string TokenizeWithRegexCollection(
-        this ReadOnlySpan<char> textSpan,
-        IEnumerable<Regex> regexCollection,
-        bool removeQuotes)
+    public static string TokenizeWithRegexCollection(this ReadOnlySpan<char> textSpan,
+        IEnumerable<Regex> regexCollection, bool removeQuotes)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
         ArgumentNullException.ThrowIfNull(regexCollection);
 
         using BufferWriterSlim<char> bufferSlim = new(stackalloc char[8192]);
@@ -144,81 +134,15 @@ public static class ReadOnlySpanExtensions
         }
     }
 
-    public static string TokenizeWithRegexCollection2(
-        this ReadOnlySpan<char> textSpan,
-        IEnumerable<Regex> regexCollection,
-        bool removeQuotes, int stackAllocThreshold = 8192)
-    {
-        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
-
-        ArgumentNullException.ThrowIfNull(regexCollection);
-
-        var bufferSize = 0;
-        var collection = regexCollection as Regex[] ?? regexCollection.ToArray();
-        foreach (var regex in collection)
-        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
-        {
-            if (valueMatch.Length.Equals(0)) continue;
-
-            var firstChar = textSpan[valueMatch.Index];
-            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
-
-            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                bufferSize += valueMatch.Length - 2;
-            else
-                bufferSize += valueMatch.Length;
-        }
-
-        var buffer = bufferSize <= stackAllocThreshold ? stackalloc char[bufferSize] : new char[bufferSize];
-        SpanWriter<char> bufferWriter = new(buffer);
-
-        foreach (var regex in collection)
-        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
-        {
-            if (valueMatch.Length.Equals(0)) continue;
-
-            var firstChar = textSpan[valueMatch.Index];
-            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
-
-            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                bufferWriter.Write(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
-            else
-                bufferWriter.Write(textSpan.Slice(valueMatch.Index, valueMatch.Length));
-        }
-
-        return bufferWriter.ToString();
-    }
-
-    public static string TokenizeWithRegexCollection3(
-        this ReadOnlySpan<char> textSpan,
-        IEnumerable<Regex> regexCollection,
-        bool removeQuotes)
+    public static string TokenizeWithRegexCollection2(this ReadOnlySpan<char> textSpan,
+        IEnumerable<Regex> regexCollection, bool removeQuotes, int stackAllocThreshold = 8192)
     {
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
         ArgumentNullException.ThrowIfNull(regexCollection);
 
         var bufferSize = 0;
         var collection = regexCollection as Regex[] ?? regexCollection.ToArray();
-
         foreach (var regex in collection)
-        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
-        {
-            if (valueMatch.Length.Equals(0)) continue;
-
-            var firstChar = textSpan[valueMatch.Index];
-            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
-
-            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                bufferSize += valueMatch.Length - 2;
-            else
-                bufferSize += valueMatch.Length;
-        }
-
-        var sb = StringBuilderSimplePool.Shared.Rent(bufferSize);
-
-        try
-        {
-            foreach (var regex in collection)
             foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
             {
                 if (valueMatch.Length.Equals(0)) continue;
@@ -227,10 +151,73 @@ public static class ReadOnlySpanExtensions
                 var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
 
                 if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                    sb.Append(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
+                    bufferSize += valueMatch.Length - 2;
                 else
-                    sb.Append(textSpan.Slice(valueMatch.Index, valueMatch.Length));
+                    bufferSize += valueMatch.Length;
             }
+
+        var allocatedBuffer = bufferSize <= stackAllocThreshold
+            ? stackalloc char[bufferSize]
+            : new char[bufferSize];
+        SpanWriter<char> bufferWriter = new(allocatedBuffer);
+
+        foreach (var regex in collection)
+            foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+            {
+                if (valueMatch.Length.Equals(0)) continue;
+
+                var firstChar = textSpan[valueMatch.Index];
+                var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+
+                if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                    bufferWriter.Write(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
+                else
+                    bufferWriter.Write(textSpan.Slice(valueMatch.Index, valueMatch.Length));
+            }
+
+        return bufferWriter.ToString();
+    }
+
+    public static string TokenizeWithRegexCollection3(this ReadOnlySpan<char> textSpan,
+        IEnumerable<Regex> regexCollection, bool removeQuotes)
+    {
+        ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
+        ArgumentNullException.ThrowIfNull(regexCollection);
+
+        var bufferSize = 0;
+        var collection = regexCollection as Regex[] ?? regexCollection.ToArray();
+
+        foreach (var regex in collection)
+            foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+            {
+                if (valueMatch.Length.Equals(0)) continue;
+
+                var firstChar = textSpan[valueMatch.Index];
+                var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+
+                if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                    bufferSize += valueMatch.Length - 2;
+                else
+                    bufferSize += valueMatch.Length;
+            }
+
+        var sb = StringBuilderSimplePool.Shared.Rent(bufferSize);
+
+        try
+        {
+            foreach (var regex in collection)
+                foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+                {
+                    if (valueMatch.Length.Equals(0)) continue;
+
+                    var firstChar = textSpan[valueMatch.Index];
+                    var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+
+                    if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                        sb.Append(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
+                    else
+                        sb.Append(textSpan.Slice(valueMatch.Index, valueMatch.Length));
+                }
 
             return sb.ToString();
         }

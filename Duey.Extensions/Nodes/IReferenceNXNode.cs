@@ -1,4 +1,4 @@
-﻿namespace Duey.Extensions;
+﻿namespace Duey.Extensions.Nodes;
 
 internal interface IReferenceNXNode
 {

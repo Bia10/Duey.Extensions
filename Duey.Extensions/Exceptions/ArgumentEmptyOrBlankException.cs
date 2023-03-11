@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using Duey.Extensions.Extensions;
 
 namespace Duey.Extensions.Exceptions;
 
@@ -38,8 +39,7 @@ public class ArgumentEmptyOrBlankException : ArgumentException
     {
     }
 
-    public static void ThrowIfEmptyOrBlank(
-        ReadOnlySpan<char> argument,
+    public static void ThrowIfEmptyOrBlank(ReadOnlySpan<char> argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null)
     {
         if (!argument.IsEmptyOrWhiteSpace())
@@ -48,8 +48,7 @@ public class ArgumentEmptyOrBlankException : ArgumentException
         Throw(paramName);
     }
 
-    public static unsafe void ThrowIfNull(
-        [NotNull] void* argument,
+    public static unsafe void ThrowIfNull([NotNull] void* argument,
         [CallerArgumentExpression(nameof(argument))] string? paramName = null)
     {
         if ((nint)argument != nint.Zero)
@@ -57,10 +56,8 @@ public class ArgumentEmptyOrBlankException : ArgumentException
 
         Throw(paramName);
     }
-
     #nullable disable
-    internal static void ThrowEmptyOrBlankException(
-        nint argument,
+    internal static void ThrowEmptyOrBlankException(nint argument,
         [CallerArgumentExpression(nameof(argument))] string paramName = null)
     {
         ArgumentNullException.ThrowIfNull(argument, paramName);

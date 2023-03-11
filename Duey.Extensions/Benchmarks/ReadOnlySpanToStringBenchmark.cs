@@ -15,7 +15,8 @@ public class ReadOnlySpanToStringBenchmark
         _testString = new string(Enumerable.Repeat('a', 100000).ToArray());
     }
 
-    private ReadOnlySpan<char> TestSpan => _testString.AsSpan();
+    private ReadOnlySpan<char> TestSpan
+        => _testString.AsSpan();
 
     public Summary Execute()
     {
