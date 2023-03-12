@@ -22,7 +22,7 @@ public static class ReadOnlySpanExtensions
         ArgumentEmptyOrBlankException.ThrowIfEmptyOrBlank(textSpan);
 
         StringBuilder sb = new(textSpan.Length);
-        foreach (var @char in textSpan) sb.Append(@char);
+        sb.Append(textSpan);
 
         return sb.ToString();
     }
@@ -143,18 +143,18 @@ public static class ReadOnlySpanExtensions
         var bufferSize = 0;
         var collection = regexCollection as Regex[] ?? regexCollection.ToArray();
         foreach (var regex in collection)
-            foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
-            {
-                if (valueMatch.Length.Equals(0)) continue;
+        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+        {
+            if (valueMatch.Length.Equals(0)) continue;
 
-                var firstChar = textSpan[valueMatch.Index];
-                var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+            var firstChar = textSpan[valueMatch.Index];
+            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
 
-                if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                    bufferSize += valueMatch.Length - 2;
-                else
-                    bufferSize += valueMatch.Length;
-            }
+            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                bufferSize += valueMatch.Length - 2;
+            else
+                bufferSize += valueMatch.Length;
+        }
 
         var allocatedBuffer = bufferSize <= stackAllocThreshold
             ? stackalloc char[bufferSize]
@@ -162,18 +162,18 @@ public static class ReadOnlySpanExtensions
         SpanWriter<char> bufferWriter = new(allocatedBuffer);
 
         foreach (var regex in collection)
-            foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
-            {
-                if (valueMatch.Length.Equals(0)) continue;
+        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+        {
+            if (valueMatch.Length.Equals(0)) continue;
 
-                var firstChar = textSpan[valueMatch.Index];
-                var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+            var firstChar = textSpan[valueMatch.Index];
+            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
 
-                if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                    bufferWriter.Write(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
-                else
-                    bufferWriter.Write(textSpan.Slice(valueMatch.Index, valueMatch.Length));
-            }
+            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                bufferWriter.Write(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
+            else
+                bufferWriter.Write(textSpan.Slice(valueMatch.Index, valueMatch.Length));
+        }
 
         return bufferWriter.ToString();
     }
@@ -188,6 +188,24 @@ public static class ReadOnlySpanExtensions
         var collection = regexCollection as Regex[] ?? regexCollection.ToArray();
 
         foreach (var regex in collection)
+        foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
+        {
+            if (valueMatch.Length.Equals(0)) continue;
+
+            var firstChar = textSpan[valueMatch.Index];
+            var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
+
+            if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
+                bufferSize += valueMatch.Length - 2;
+            else
+                bufferSize += valueMatch.Length;
+        }
+
+        var sb = StringBuilderSimplePool.Shared.Rent(bufferSize);
+
+        try
+        {
+            foreach (var regex in collection)
             foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
             {
                 if (valueMatch.Length.Equals(0)) continue;
@@ -196,28 +214,10 @@ public static class ReadOnlySpanExtensions
                 var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
 
                 if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                    bufferSize += valueMatch.Length - 2;
+                    sb.Append(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
                 else
-                    bufferSize += valueMatch.Length;
+                    sb.Append(textSpan.Slice(valueMatch.Index, valueMatch.Length));
             }
-
-        var sb = StringBuilderSimplePool.Shared.Rent(bufferSize);
-
-        try
-        {
-            foreach (var regex in collection)
-                foreach (var valueMatch in textSpan.EnumerateRegexMatches(regex))
-                {
-                    if (valueMatch.Length.Equals(0)) continue;
-
-                    var firstChar = textSpan[valueMatch.Index];
-                    var lastChar = textSpan[valueMatch.Index + valueMatch.Length - 1];
-
-                    if (removeQuotes && firstChar.Equals('"') && lastChar.Equals('"'))
-                        sb.Append(textSpan.Slice(valueMatch.Index + 1, valueMatch.Length - 2));
-                    else
-                        sb.Append(textSpan.Slice(valueMatch.Index, valueMatch.Length));
-                }
 
             return sb.ToString();
         }

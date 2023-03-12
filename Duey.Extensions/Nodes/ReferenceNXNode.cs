@@ -2,66 +2,45 @@
 
 public sealed class ReferenceNXNode : IReferenceNXNode
 {
-    public enum ReferenceNodeType : short
-    {
-        Map,
-        Mob,
-        Npc,
-        Item,
-        Skill,
-        Quest,
-        Reactor,
-        String,
-        Etc,
-        UI,
-        Base,
-        Character,
-        List,
-        Sound,
-        TamingMob,
-        Morph,
-        Effect
-    }
-
     public readonly INXNode ParentNode;
     public readonly string ReferencedNodeName;
-    public readonly ReferenceNodeType ReferenceType;
+    public readonly ReferencedType ReferencedNodeType;
     public readonly INXNode ReferencingNode;
     public readonly string ReferencingNodeData;
 
     internal ReferenceNXNode(INXNode parentNode, INXNode referencingNode, string referencedNodeName,
-        string referencingNodeData, ReferenceNodeType referenceType)
+        string referencingNodeData, ReferencedType referencedNodeType)
     {
         ParentNode = parentNode;
         ReferencingNode = referencingNode;
         ReferencedNodeName = referencedNodeName;
         ReferencingNodeData = referencingNodeData;
-        ReferenceType = referenceType;
+        ReferencedNodeType = referencedNodeType;
     }
 
     public INXNode LoadReferencedNodeByName(string name)
     {
         var dataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
-        var filePath = ReferenceType switch
+        var filePath = ReferencedNodeType switch
         {
-            ReferenceNodeType.Map => Path.Combine(dataPath, "Map.nx"),
-            ReferenceNodeType.Mob => Path.Combine(dataPath, "Mob.nx"),
-            ReferenceNodeType.Npc => Path.Combine(dataPath, "Npc.nx"),
-            ReferenceNodeType.Item => Path.Combine(dataPath, "Item.nx"),
-            ReferenceNodeType.Skill => Path.Combine(dataPath, "Skill.nx"),
-            ReferenceNodeType.Quest => Path.Combine(dataPath, "Quest.nx"),
-            ReferenceNodeType.Reactor => Path.Combine(dataPath, "Reactor.nx"),
-            ReferenceNodeType.String => Path.Combine(dataPath, "String.nx"),
-            ReferenceNodeType.Etc => Path.Combine(dataPath, "Etc.nx"),
-            ReferenceNodeType.UI => Path.Combine(dataPath, "UI.nx"),
-            ReferenceNodeType.Base => Path.Combine(dataPath, "Base.nx"),
-            ReferenceNodeType.Character => Path.Combine(dataPath, "Character.nx"),
-            ReferenceNodeType.List => Path.Combine(dataPath, "List.nx"),
-            ReferenceNodeType.Sound => Path.Combine(dataPath, "Sound.nx"),
-            ReferenceNodeType.TamingMob => Path.Combine(dataPath, "TamingMob.nx"),
-            ReferenceNodeType.Morph => Path.Combine(dataPath, "Morph.nx"),
-            ReferenceNodeType.Effect => Path.Combine(dataPath, "Effect.nx"),
-            _ => throw new ArgumentOutOfRangeException($"Unsupported ReferenceNXNodeType: {ReferenceType}")
+            ReferencedType.Map => Path.Combine(dataPath, "Map.nx"),
+            ReferencedType.Mob => Path.Combine(dataPath, "Mob.nx"),
+            ReferencedType.Npc => Path.Combine(dataPath, "Npc.nx"),
+            ReferencedType.Item => Path.Combine(dataPath, "Item.nx"),
+            ReferencedType.Skill => Path.Combine(dataPath, "Skill.nx"),
+            ReferencedType.Quest => Path.Combine(dataPath, "Quest.nx"),
+            ReferencedType.Reactor => Path.Combine(dataPath, "Reactor.nx"),
+            ReferencedType.String => Path.Combine(dataPath, "String.nx"),
+            ReferencedType.Etc => Path.Combine(dataPath, "Etc.nx"),
+            ReferencedType.UI => Path.Combine(dataPath, "UI.nx"),
+            ReferencedType.Base => Path.Combine(dataPath, "Base.nx"),
+            ReferencedType.Character => Path.Combine(dataPath, "Character.nx"),
+            ReferencedType.List => Path.Combine(dataPath, "List.nx"),
+            ReferencedType.Sound => Path.Combine(dataPath, "Sound.nx"),
+            ReferencedType.TamingMob => Path.Combine(dataPath, "TamingMob.nx"),
+            ReferencedType.Morph => Path.Combine(dataPath, "Morph.nx"),
+            ReferencedType.Effect => Path.Combine(dataPath, "Effect.nx"),
+            _ => throw new ArgumentOutOfRangeException($"Unsupported ReferencedNodeType: {ReferencedNodeType}")
         };
 
         using NXFile nxFile = new(filePath);

@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Duey.Extensions;
+namespace Duey.Extensions.Regexes;
 
 public static partial class RegexPatterns
 {
