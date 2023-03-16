@@ -6,27 +6,29 @@ namespace Duey.Extensions.Benchmarks;
 
 public class CountNodesBenchmark
 {
+    private readonly Dictionary<string, (long totalTime, long totalCount)> Results = new();
     private List<Func<NXNode, int>> CountMethods = null!;
-
     private IReadOnlyCollection<NXFile> NxFiles = null!;
 
-    [Params(1, 5, 10)]
-    private int MaxIterations { get; set; }
+    [Params(1)]
+    public int MaxIterations { get; set; }
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         NxFiles = Directory
-            .GetFiles(Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "Data (2)"), "*.nx")
-            .Select(static file => new NXFile(file))
+            .GetFiles(
+                Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "Data (2)"),
+                "*.nx")
+            .Select(file => new NXFile(file))
             .ToArray();
 
         CountMethods = new List<Func<NXNode, int>>
         {
-            static rootNode => rootNode.CountNodesRecursive(),
-            static rootNode => rootNode.CountSumRecursion(),
-            static rootNode => rootNode.CountBreadthFirst(),
-            static rootNode => rootNode.CountStackIteration()
+            rootNode => rootNode.CountNodesRecursive(),
+            rootNode => rootNode.CountSumRecursion(),
+            rootNode => rootNode.CountBreadthFirst(),
+            rootNode => rootNode.CountStackIteration()
         };
     }
 
@@ -59,12 +61,8 @@ public class CountNodesBenchmark
         long totalTime = 0;
         long totalCount = 0;
 
-        foreach (var nxFile in NxFiles)
-        {
-            var rootNode = nxFile.Root;
-
+        foreach (var rootNode in NxFiles.Select(static nxFile => nxFile.Root))
             for (var i = 0; i < MaxIterations; i++)
-            for (var j = 0; j < CountMethods.Count; j++)
             {
                 var sw = Stopwatch.StartNew();
                 var count = countMethod(rootNode);
@@ -72,7 +70,6 @@ public class CountNodesBenchmark
                 totalCount += count;
             }
 
-            nxFile.Dispose();
-        }
+        Results[countMethod.Method.Name] = (totalTime, totalCount);
     }
 }

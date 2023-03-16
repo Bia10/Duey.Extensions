@@ -9,6 +9,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Plotly.NET" Version="4.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\Duey.Extensions\Duey.Extensions.csproj" />
 	</ItemGroup>
 
